@@ -1,6 +1,7 @@
 import pygame
 import sys
 from button import Button
+import pygame_gui
 
 play_game = True
 show_splash_screen = True
@@ -13,7 +14,13 @@ CENTRE_Y = WINDOW_HEIGHT // 2
 WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("GPT World")
 
+CLOCK = pygame.time.Clock()
+
+UI_REFRESH_RATE = CLOCK.tick(60) / 1000
+
 BACKGROUND = pygame.image.load("assets/img/background.png")
+
+UI_MANAGER = pygame_gui.UIManager((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 def get_font(size): # Returns Press-Start-2P in the desired size
     return pygame.font.Font("assets/fonts//press-start-2p.ttf", size)
@@ -108,10 +115,19 @@ def main_menu():
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
+            
+            UI_MANAGER.process_events(event)
+        
+        UI_MANAGER.update(UI_REFRESH_RATE)
+        UI_MANAGER.draw_ui(WINDOW)
 
         pygame.display.update()
 
 def create_player():
+    
+    name_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((100, 200), (100, 50)), text="Name:", manager=UI_MANAGER)
+    name_input = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((200, 200), (900, 50)), manager=UI_MANAGER, object_id="#name-entry")
+
     while True:
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
@@ -121,21 +137,28 @@ def create_player():
         HEADER_RECT = HEADER.get_rect(center=(CENTRE_X, 50))
         WINDOW.blit(HEADER, HEADER_RECT)
 
-        OPTIONS_BACK = Button(image=None, pos=(CENTRE_X, 560),
-                              text_input="BACK", font=get_font(45), base_color="white", hovering_color="Green")
+        BACK_BUTTON = Button(image=None, pos=(CENTRE_X, 560), text_input="BACK", font=get_font(45), base_color="white", hovering_color="Green")
 
-        OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
-        OPTIONS_BACK.update(WINDOW)
+        BACK_BUTTON.changeColor(OPTIONS_MOUSE_POS)
+        BACK_BUTTON.update(WINDOW)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
+                if BACK_BUTTON.checkForInput(OPTIONS_MOUSE_POS):
+                    name_label.visible = False
+                    name_input.visible = False
                     main_menu()
+                        
+            UI_MANAGER.process_events(event)
+        
+        UI_MANAGER.update(UI_REFRESH_RATE)
+        UI_MANAGER.draw_ui(WINDOW)
 
         pygame.display.update()
+
 
 main_menu()
 
